@@ -754,6 +754,56 @@
   font-size: 9px;
 }
 
+.schema-test-plan {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.75fr) minmax(0, 1.25fr);
+  gap: 18px;
+  margin-top: 18px;
+  padding: 15px;
+  border: 1px solid var(--simeony-accent-border);
+  border-radius: 10px;
+  background: var(--simeony-accent-soft);
+}
+
+.schema-test-plan h3 {
+  margin: 5px 0;
+  color: var(--bolt-elements-textPrimary);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.schema-test-plan p {
+  margin: 0;
+  color: var(--bolt-elements-textTertiary);
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.schema-test-plan ul {
+  display: grid;
+  max-height: 200px;
+  gap: 8px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.schema-test-plan li {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: var(--bolt-elements-textSecondary);
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.schema-test-plan li svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--simeony-accent);
+}
+
 .entity-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1540,6 +1590,10 @@ button.target-choice {
     gap: 10px;
   }
 
+  .schema-test-plan {
+    grid-template-columns: 1fr;
+  }
+
   .approval-footer {
     align-items: flex-start;
     flex-direction: column;
@@ -1788,9 +1842,7 @@ button.target-choice {
   align-items: center;
   gap: 22px;
   padding: 24px;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(229, 72, 63, 0.12), transparent 50%),
-    #101116;
+  background: radial-gradient(ellipse at 50% 0%, rgba(229, 72, 63, 0.12), transparent 50%), #101116;
 }
 
 .showcase-idea h3 {
@@ -1843,7 +1895,9 @@ button.target-choice {
   font: inherit;
   font-size: 10px;
   font-weight: 700;
-  transition: transform 140ms ease, box-shadow 140ms ease;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .showcase-build-button:hover {
@@ -2003,19 +2057,27 @@ button.target-choice {
 }
 
 .art-one {
-  background: radial-gradient(ellipse at 52% 40%, #ffd6a3 0 12%, transparent 13%), linear-gradient(145deg, #7c4c67, #e38e67 52%, #332840);
+  background:
+    radial-gradient(ellipse at 52% 40%, #ffd6a3 0 12%, transparent 13%),
+    linear-gradient(145deg, #7c4c67, #e38e67 52%, #332840);
 }
 
 .art-two {
-  background: radial-gradient(circle at 48% 42%, #d4edff 0 15%, transparent 16%), linear-gradient(155deg, #385f78, #96bfa6 55%, #283a45);
+  background:
+    radial-gradient(circle at 48% 42%, #d4edff 0 15%, transparent 16%),
+    linear-gradient(155deg, #385f78, #96bfa6 55%, #283a45);
 }
 
 .art-three {
-  background: radial-gradient(ellipse at 50% 40%, #ffd3c4 0 13%, transparent 14%), linear-gradient(140deg, #a67481, #efc7a8 48%, #495b79);
+  background:
+    radial-gradient(ellipse at 50% 40%, #ffd3c4 0 13%, transparent 14%),
+    linear-gradient(140deg, #a67481, #efc7a8 48%, #495b79);
 }
 
 .art-four {
-  background: radial-gradient(circle at 53% 39%, #ffe3aa 0 12%, transparent 13%), linear-gradient(155deg, #4e6477, #98a8b3 50%, #473f54);
+  background:
+    radial-gradient(circle at 53% 39%, #ffe3aa 0 12%, transparent 13%),
+    linear-gradient(155deg, #4e6477, #98a8b3 50%, #473f54);
 }
 
 .showcase-app-caption {
@@ -2128,9 +2190,7 @@ button.target-choice {
   width: 100%;
   min-height: calc(100vh - 64px);
   padding: 17px clamp(18px, 5vw, 64px) 54px;
-  background:
-    radial-gradient(ellipse at 75% 27%, rgba(229, 62, 62, 0.1), transparent 36%),
-    #0a0a0c;
+  background: radial-gradient(ellipse at 75% 27%, rgba(229, 62, 62, 0.1), transparent 36%), #0a0a0c;
   color: #f7fafc;
 }
 
@@ -2251,7 +2311,9 @@ button.target-choice {
   border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: 17px;
   background: rgba(20, 20, 25, 0.82);
-  box-shadow: 0 15px 48px rgba(0, 0, 0, 0.25), 0 0 26px rgba(229, 62, 62, 0.07);
+  box-shadow:
+    0 15px 48px rgba(0, 0, 0, 0.25),
+    0 0 26px rgba(229, 62, 62, 0.07);
 }
 
 .simeony-prompt-card label {
@@ -2284,7 +2346,9 @@ button.target-choice {
   font-family: inherit;
   font-size: 10px;
   line-height: 1.65;
-  transition: border-color 140ms ease, box-shadow 140ms ease;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .simeony-prompt-card textarea::placeholder {
@@ -2320,7 +2384,10 @@ button.target-choice {
   color: #b9b9c2;
   font: inherit;
   font-size: 8px;
-  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    color 140ms ease;
 }
 
 .simeony-target-chips button:hover,
@@ -2351,7 +2418,9 @@ button.target-choice {
   font: inherit;
   font-size: 9px;
   font-weight: 720;
-  transition: transform 140ms ease, box-shadow 140ms ease;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .simeony-build-button:hover {
@@ -2393,7 +2462,9 @@ button.target-choice {
   color: #aaaab3;
   font: inherit;
   font-size: 8px;
-  transition: border-color 140ms ease, color 140ms ease;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease;
 }
 
 .simeony-example-prompts button:hover {

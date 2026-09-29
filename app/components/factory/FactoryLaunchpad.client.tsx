@@ -42,6 +42,7 @@ import JSZip from 'jszip';
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { toast } from 'react-toastify';
 import { FOUNDATION_REGISTRY, getFoundationForWebApp } from '~/lib/foundations/registry';
+import { generateWorkflowTestCases } from '~/lib/foundations/schema-planner';
 import './FactoryLaunchpad.scss';
 
 type ProjectType = 'Web' | 'PWA';
@@ -364,9 +365,21 @@ function makeBuildPrompt(options: {
   relationships: string[];
   roles: string[];
   rules: string;
+  workflowTests: string[];
   analysis?: CodebaseAnalysis;
 }) {
-  const { prompt, projectType, foundationName, category, entities, relationships, roles, rules, analysis } = options;
+  const {
+    prompt,
+    projectType,
+    foundationName,
+    category,
+    entities,
+    relationships,
+    roles,
+    rules,
+    workflowTests,
+    analysis,
+  } = options;
   const model = entities.map((entity) => `- ${entity.name}: ${entity.fields}`).join('\n');
 
   return `[Universal App Builder: foundation=web-pwa; approved-data-model=true]
@@ -389,6 +402,9 @@ ${relationships.map((item) => `- ${item}`).join('\n')}
 
 ROLES AND ACCESS:
 ${roles.map((item) => `- ${item}`).join('\n')}
+
+LOCALLY GENERATED ACCEPTANCE TESTS (derived from the user-approved schema; refine as needed):
+${workflowTests.map((item) => `- ${item}`).join('\n')}
 
 BUSINESS RULES / OPEN QUESTIONS:
 ${rules || '- None provided; surface important assumptions to the user.'}
@@ -546,6 +562,7 @@ export function FactoryLaunchpad() {
       relationships: plan.relationships,
       roles: plan.roles,
       rules: plan.rules,
+      workflowTests: generateWorkflowTestCases(plan),
       analysis: analysis || undefined,
     });
 
@@ -730,7 +747,11 @@ export function FactoryLaunchpad() {
 
                 <section className="simeony-preview-card" id="preview" aria-label="Illustrative app preview">
                   <div className="simeony-browser-bar">
-                    <span className="simeony-browser-dots"><i /><i /><i /></span>
+                    <span className="simeony-browser-dots">
+                      <i />
+                      <i />
+                      <i />
+                    </span>
                     <span className="simeony-preview-address">Illustrative app preview</span>
                     <span className="simeony-preview-target">WEB / PWA</span>
                   </div>
@@ -741,8 +762,12 @@ export function FactoryLaunchpad() {
                       <span className="simeony-credit-badge">Sample dashboard</span>
                     </div>
                     <div className="simeony-generated-gallery" aria-hidden="true">
-                      <div className="simeony-gallery-art simeony-gallery-art-one"><span>Dreamscape · 01</span></div>
-                      <div className="simeony-gallery-art simeony-gallery-art-two"><span>Portrait · 02</span></div>
+                      <div className="simeony-gallery-art simeony-gallery-art-one">
+                        <span>Dreamscape · 01</span>
+                      </div>
+                      <div className="simeony-gallery-art simeony-gallery-art-two">
+                        <span>Portrait · 02</span>
+                      </div>
                     </div>
                     <div className="simeony-preview-actions">
                       <span>App canvas</span>
@@ -776,7 +801,9 @@ export function FactoryLaunchpad() {
               </div>
             </section>
             <footer className="simeony-footer">
-              <span className="simeony-footer-brand"><b>S</b> Simeony <small>by SimeonJr Studios</small></span>
+              <span className="simeony-footer-brand">
+                <b>S</b> Simeony <small>by SimeonJr Studios</small>
+              </span>
               <span>IDEA IN. APP OUT.</span>
               <span>Web / PWA builder · Other platforms are planned</span>
             </footer>
@@ -923,7 +950,8 @@ export function FactoryLaunchpad() {
           {hearAbout && <span>Found us via {hearAbout}</span>}
         </div>
         <p className="factory-scope-note">
-          Web and PWA are the build targets available today. Mobile and desktop publishing are planned for a later release.
+          Web and PWA are the build targets available today. Mobile and desktop publishing are planned for a later
+          release.
         </p>
       </section>
 
@@ -1265,6 +1293,24 @@ export function FactoryLaunchpad() {
               <small>One role per line. Enforce least-privilege access.</small>
             </div>
           </div>
+          <section className="schema-test-plan" aria-labelledby="schema-test-heading">
+            <div>
+              <span className="step-label">GENERATED LOCALLY · NO API KEY</span>
+              <h3 id="schema-test-heading">Workflow checks for your schema</h3>
+              <p>
+                These acceptance scenarios update from your entities, relationships, and roles. They will be included in
+                the request when you approve the plan.
+              </p>
+            </div>
+            <ul>
+              {generateWorkflowTestCases(plan).map((testCase) => (
+                <li key={testCase}>
+                  <Check size={14} />
+                  <span>{testCase}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
           <label className="field-label rules-label">Application rules and open questions</label>
           <textarea
             className="rules-input"
