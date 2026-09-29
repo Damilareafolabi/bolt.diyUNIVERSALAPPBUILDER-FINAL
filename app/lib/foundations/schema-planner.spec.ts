@@ -73,11 +73,15 @@ describe('target foundation selection', () => {
 
     expect(mobileRequirements).toContain('React Native application using Expo');
     expect(mobileRequirements).toContain('native stack navigation');
+    expect(mobileRequirements).toContain('src/navigation/RootNavigator.tsx');
     expect(mobileRequirements).toContain('Expo SQLite');
+    expect(mobileRequirements).toContain('Repository reads and writes must work locally when offline');
     expect(mobileRequirements).not.toContain('Electron');
 
     expect(desktopRequirements).toContain('desktop application shell with Electron');
+    expect(desktopRequirements).toContain('src/shared/domain');
     expect(desktopRequirements).toContain('context isolation enabled');
+    expect(desktopRequirements).toContain('typed, purpose-specific methods');
     expect(desktopRequirements).toContain('Tauri is not configured');
     expect(desktopRequirements).not.toContain('Expo SQLite');
   });
