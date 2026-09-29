@@ -1,10 +1,6 @@
-export type FoundationId =
-  | 'web-pwa'
-  | 'desktop'
-  | 'mobile'
-  | 'android'
-  | 'ios'
-  | 'api-backend';
+export type FoundationId = 'web-pwa' | 'desktop' | 'mobile' | 'android' | 'ios' | 'api-backend';
+
+export type SimeonyTarget = 'web' | 'pwa' | 'mobile' | 'desktop';
 
 export type FoundationStatus = 'mvp-engine' | 'candidate-unverified' | 'blocked-license';
 
@@ -76,7 +72,8 @@ export const FOUNDATION_REGISTRY: readonly FoundationDefinition[] = [
       framework: 'Rust + Tauri; frontend choice depends on a separately validated application foundation.',
       capabilities: ['Desktop runtime', 'permission-scoped capabilities', 'cross-platform packaging'],
       validation: 'not-run',
-      reason: 'Runtime repository is not a complete product foundation; no secure IPC, UI, auth, tests, or OS package validation was run.',
+      reason:
+        'Runtime repository is not a complete product foundation; no secure IPC, UI, auth, tests, or OS package validation was run.',
     },
     notYetSupported: 'No desktop foundation selected or installer build verified.',
   },
@@ -94,7 +91,8 @@ export const FOUNDATION_REGISTRY: readonly FoundationDefinition[] = [
       framework: 'React Native + Expo',
       capabilities: ['iOS and Android project scaffolding', 'Expo Router examples'],
       validation: 'not-run',
-      reason: 'Examples repository is not yet validated as an auth, roles, API, offline, notification, and release-ready product foundation.',
+      reason:
+        'Examples repository is not yet validated as an auth, roles, API, offline, notification, and release-ready product foundation.',
     },
     notYetSupported: 'No mobile app generation or package build is implemented.',
   },
@@ -112,7 +110,8 @@ export const FOUNDATION_REGISTRY: readonly FoundationDefinition[] = [
       framework: 'Kotlin + Jetpack Compose sample architecture',
       capabilities: ['Compose architecture samples', 'Android Gradle builds'],
       validation: 'not-run',
-      reason: 'Sample repository is not yet validated for auth, roles, API/local storage, release signing, or APK/AAB packaging here.',
+      reason:
+        'Sample repository is not yet validated for auth, roles, API/local storage, release signing, or APK/AAB packaging here.',
     },
     notYetSupported: 'No APK/AAB generation or Android build environment validation.',
   },
@@ -148,7 +147,8 @@ export const FOUNDATION_REGISTRY: readonly FoundationDefinition[] = [
       framework: 'FastAPI + PostgreSQL',
       capabilities: ['Authentication', 'database migrations', 'validation', 'OpenAPI', 'tests'],
       validation: 'not-run',
-      reason: 'Candidate only; install, security review, migrations, authorization model, test suite, and deployment workflow have not been run here.',
+      reason:
+        'Candidate only; install, security review, migrations, authorization model, test suite, and deployment workflow have not been run here.',
     },
     notYetSupported: 'No API/backend foundation selected or server deployment verified.',
   },
@@ -175,4 +175,20 @@ export function getFoundationForWebApp(isPwa: boolean): FoundationDefinition {
     ...foundation,
     target: isPwa ? 'Progressive web application' : 'Web application',
   };
+}
+
+export function getFoundationForTarget(target: SimeonyTarget): FoundationDefinition {
+  switch (target) {
+    case 'web':
+    case 'pwa':
+      return getFoundationForWebApp(target === 'pwa');
+    case 'mobile':
+      return getFoundation('mobile');
+    case 'desktop':
+      return getFoundation('desktop');
+    default: {
+      const exhaustiveCheck: never = target;
+      throw new Error(`Unsupported application target: ${exhaustiveCheck}`);
+    }
+  }
 }

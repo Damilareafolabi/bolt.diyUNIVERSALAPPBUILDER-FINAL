@@ -1,3 +1,5 @@
+import type { SimeonyTarget } from './registry';
+
 export interface SchemaEntity {
   name: string;
   fields: string;
@@ -25,6 +27,36 @@ export function buildWebPwaFoundationRequirements(isPwa: boolean): string[] {
           'For the PWA target, add a valid web app manifest, installable icons, and a service worker with a conservative offline strategy; verify the production build and installability before claiming PWA support.',
         ]
       : []),
+  ];
+}
+
+export function buildFoundationRequirements(target: SimeonyTarget): string[] {
+  if (target === 'web' || target === 'pwa') {
+    return buildWebPwaFoundationRequirements(target === 'pwa');
+  }
+
+  if (target === 'mobile') {
+    return [
+      'Create a separate React Native application using Expo and TypeScript. Do not copy web-only components or merge another app repository.',
+      'Use native stack navigation with screen routes derived from the approved screens, accessible navigation labels, and platform back behavior.',
+      'Implement reusable mobile data-list screens with touch-sized actions, loading/empty/error states, and pagination or incremental loading when appropriate.',
+      'Place approved entities behind typed repository interfaces so screens do not depend directly on persistence or remote API details.',
+      'Add an offline-capable local persistence adapter using Expo SQLite, including explicit schema versioning and migration boundaries. Document that remote synchronization, conflict resolution, and encryption are separate capabilities unless actually implemented.',
+      'Use Expo-compatible dependency versions aligned to the selected Expo SDK. Verify native packages and do not claim iOS/Android compilation unless a matching native toolchain was run.',
+      'Implement authentication, role checks, and remote persistence only for configured services; never fake login success or copy Simeony model-provider credentials into the generated application.',
+      'Generate mobile-specific acceptance tests for navigation, offline data operations, validation, and role restrictions; include setup commands and configuration placeholders without secret values.',
+    ];
+  }
+
+  return [
+    'Create a desktop application shell with Electron, matching the existing Simeony desktop host conventions where they apply. Do not create a second business-logic implementation.',
+    'Keep domain models, validation, and data-access contracts in a shared application layer; make the desktop shell consume these contracts through the renderer.',
+    'Use a minimal preload bridge with context isolation enabled, no renderer Node integration, and narrowly allowlisted IPC methods. Never expose unrestricted filesystem, shell, or process execution to renderer code.',
+    'Apply least-privilege navigation and filesystem access, validate IPC payloads, and document any operating-system permissions.',
+    'Reuse the existing Web/PWA authentication and data contracts where technically appropriate; do not duplicate business rules or bypass server-side authorization.',
+    'Add desktop packaging scripts and platform metadata only using dependencies/configuration confirmed in the target project. Verify the current platform build before claiming Windows, macOS, or Linux installers are ready.',
+    'Tauri is not configured as a generated target in this foundation; do not emit an unverified Tauri wrapper or merge its runtime with Electron.',
+    'Generate desktop-specific acceptance tests for shell startup, safe IPC boundaries, core workflows, and handoff/setup requirements.',
   ];
 }
 

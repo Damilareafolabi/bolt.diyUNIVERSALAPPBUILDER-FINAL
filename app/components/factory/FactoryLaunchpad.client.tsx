@@ -16,6 +16,7 @@ import {
   Layers3,
   MessagesSquare,
   MoreHorizontal,
+  Monitor,
   Music2,
   Plus,
   ShoppingCart,
@@ -41,11 +42,11 @@ import {
 import JSZip from 'jszip';
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { toast } from 'react-toastify';
-import { FOUNDATION_REGISTRY, getFoundationForWebApp } from '~/lib/foundations/registry';
-import { buildWebPwaFoundationRequirements, generateWorkflowTestCases } from '~/lib/foundations/schema-planner';
+import { FOUNDATION_REGISTRY, getFoundationForTarget, type SimeonyTarget } from '~/lib/foundations/registry';
+import { buildFoundationRequirements, generateWorkflowTestCases } from '~/lib/foundations/schema-planner';
 import './FactoryLaunchpad.scss';
 
-type ProjectType = 'Web' | 'PWA';
+type ProjectType = SimeonyTarget;
 type OnboardingStep = 'welcome' | 'category' | 'target' | 'referral' | 'builder';
 type AppCategory =
   | 'Business Tools & SaaS'
@@ -347,7 +348,7 @@ function createDraft(prompt: string, projectType: ProjectType) {
   ];
 
   return {
-    foundation: getFoundationForWebApp(projectType === 'PWA'),
+    foundation: getFoundationForTarget(projectType),
     domainHint: match ? 'Potential starting domain identified from your prompt' : 'Generic application draft',
     entities,
     relationships: match?.relationships || ['User 1 → many Records', 'Record 1 → many Activities'],
@@ -381,21 +382,21 @@ function makeBuildPrompt(options: {
     analysis,
   } = options;
   const model = entities.map((entity) => `- ${entity.name}: ${entity.fields}`).join('\n');
-  const foundationRequirements = buildWebPwaFoundationRequirements(projectType === 'PWA');
+  const foundationRequirements = buildFoundationRequirements(projectType);
 
-  return `[Universal App Builder: foundation=web-pwa; approved-data-model=true]
+  return `[Simeony App Builder: target=${projectType}; approved-data-model=true]
 
-Build the requested ${category} application from the user's approved plan. Use exactly ONE Web/PWA technical foundation for this application. Generate the application's entities, screens, and workflows inside that foundation; do not clone, import, merge, or compose any separate application repository. Use the existing Simeony coding workspace as the coding engine, inspect current project files before edits, and preserve existing behavior not explicitly replaced.
+Build the requested ${category} application from the user's approved plan. Use exactly ONE technical foundation for the selected target. Generate the application's entities, screens, and workflows inside that foundation; do not clone, import, merge, or compose any separate application repository. Use the existing Simeony coding workspace as the coding engine, inspect current project files before edits, and preserve existing behavior not explicitly replaced.
 
 APPLICATION REQUEST:
 ${prompt}
 
 APP CATEGORY: ${category}
-APP TARGET: ${projectType} (Web/PWA target foundation)
+APP TARGET: ${projectType}
 SELECTED FOUNDATION: ${foundationName}
-FOUNDATION RULE: Select one web technical stack for this app and stay within it for the whole build. Do not mix frameworks or copy another application's repository. Do not switch foundations during generation.
+FOUNDATION RULE: Select one technical stack for this app and stay within it for the whole build. Do not mix frameworks or copy another application's repository. Do not switch foundations during generation.
 
-WEB / PWA FOUNDATION REQUIREMENTS:
+SELECTED FOUNDATION REQUIREMENTS:
 ${foundationRequirements.map((requirement) => `- ${requirement}`).join('\n')}
 
 USER-APPROVED DATA MODEL:
@@ -442,7 +443,7 @@ export function FactoryLaunchpad() {
   const inputRef = useRef<HTMLInputElement>(null);
   const folderRef = useRef<HTMLInputElement>(null);
   const [prompt, setPrompt] = useState('');
-  const [projectType, setProjectType] = useState<ProjectType>('Web');
+  const [projectType, setProjectType] = useState<ProjectType>('web');
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('welcome');
   const [appCategory, setAppCategory] = useState<AppCategory>('Business Tools & SaaS');
   const [hearAbout, setHearAbout] = useState('');
@@ -675,17 +676,17 @@ export function FactoryLaunchpad() {
                     <div className="simeony-target-chips" aria-label="Choose an app direction">
                       <button
                         type="button"
-                        className={projectType === 'Web' ? 'selected' : ''}
-                        aria-pressed={projectType === 'Web'}
-                        onClick={() => setProjectType('Web')}
+                        className={projectType === 'web' ? 'selected' : ''}
+                        aria-pressed={projectType === 'web'}
+                        onClick={() => setProjectType('web')}
                       >
                         Web app
                       </button>
                       <button
                         type="button"
-                        className={projectType === 'PWA' ? 'selected' : ''}
-                        aria-pressed={projectType === 'PWA'}
-                        onClick={() => setProjectType('PWA')}
+                        className={projectType === 'pwa' ? 'selected' : ''}
+                        aria-pressed={projectType === 'pwa'}
+                        onClick={() => setProjectType('pwa')}
                       >
                         PWA
                       </button>
@@ -697,9 +698,22 @@ export function FactoryLaunchpad() {
                       >
                         AI app
                       </button>
-                      <span className="planned" title="Native mobile builds are not available yet">
-                        Mobile · planned
-                      </span>
+                      <button
+                        type="button"
+                        className={projectType === 'mobile' ? 'selected' : ''}
+                        aria-pressed={projectType === 'mobile'}
+                        onClick={() => setProjectType('mobile')}
+                      >
+                        Mobile
+                      </button>
+                      <button
+                        type="button"
+                        className={projectType === 'desktop' ? 'selected' : ''}
+                        aria-pressed={projectType === 'desktop'}
+                        onClick={() => setProjectType('desktop')}
+                      >
+                        Desktop
+                      </button>
                     </div>
                     <button
                       className="simeony-build-button"
@@ -847,7 +861,8 @@ export function FactoryLaunchpad() {
                   ))}
                 </div>
                 <p className="category-note">
-                  Choose a direction to help shape your prompt. The Web/PWA foundation can be adapted to many app ideas.
+                  Choose a product category first. Select Web/PWA, Mobile, or Desktop in the next step to generate a
+                  matching, single-target foundation.
                 </p>
               </>
             )}
@@ -855,10 +870,10 @@ export function FactoryLaunchpad() {
             {onboardingStep === 'target' && (
               <div className="target-choice-list">
                 <button
-                  className="target-choice selected"
                   type="button"
-                  aria-pressed="true"
-                  onClick={() => setProjectType('Web')}
+                  className={`target-choice ${projectType === 'web' ? 'selected' : ''}`}
+                  aria-pressed={projectType === 'web'}
+                  onClick={() => setProjectType('web')}
                 >
                   <span className="target-choice-icon">
                     <Globe2 size={22} />
@@ -869,19 +884,59 @@ export function FactoryLaunchpad() {
                   </span>
                   <Check size={18} />
                 </button>
-                <div className="target-choice unavailable" aria-disabled="true">
+                <button
+                  className={`target-choice ${projectType === 'pwa' ? 'selected' : ''}`}
+                  type="button"
+                  aria-pressed={projectType === 'pwa'}
+                  onClick={() => setProjectType('pwa')}
+                >
+                  <span className="target-choice-icon">
+                    <Globe2 size={22} />
+                  </span>
+                  <span>
+                    <strong>Build My PWA</strong>
+                    <small>Web app with installability and offline support in the generated project.</small>
+                  </span>
+                  {projectType === 'pwa' && <Check size={18} />}
+                </button>
+                <button
+                  className={`target-choice ${projectType === 'mobile' ? 'selected' : ''}`}
+                  type="button"
+                  aria-pressed={projectType === 'mobile'}
+                  onClick={() => setProjectType('mobile')}
+                >
                   <span className="target-choice-icon">
                     <Smartphone size={22} />
                   </span>
                   <span>
-                    <strong>Build My Mobile App</strong>
-                    <small>Ship to App Store &amp; Google Play</small>
+                    <strong>Mobile · Expo / React Native</strong>
+                    <small>
+                      Generate a native mobile project specification with stack navigation and offline storage.
+                    </small>
                   </span>
-                  <span className="coming-soon">COMING SOON</span>
-                </div>
+                  {projectType === 'mobile' && <Check size={18} />}
+                </button>
+                <button
+                  className={`target-choice ${projectType === 'desktop' ? 'selected' : ''}`}
+                  type="button"
+                  aria-pressed={projectType === 'desktop'}
+                  onClick={() => setProjectType('desktop')}
+                >
+                  <span className="target-choice-icon">
+                    <Monitor size={22} />
+                  </span>
+                  <span>
+                    <strong>Desktop · Electron</strong>
+                    <small>
+                      Generate a desktop shell specification aligned to Simeony’s existing Electron runtime.
+                    </small>
+                  </span>
+                  {projectType === 'desktop' && <Check size={18} />}
+                </button>
                 <p className="target-honesty">
-                  <ShieldCheck size={15} /> Native iOS and Android builds are not available yet. The current MVP builds
-                  Web/PWA applications only.
+                  <ShieldCheck size={15} /> Web/PWA generation runs in the current browser workspace. Mobile and desktop
+                  receive target-specific scaffolding instructions; native builds and installers are not verified by the
+                  browser workspace.
                 </p>
               </div>
             )}
@@ -945,17 +1000,27 @@ export function FactoryLaunchpad() {
         </span>
         <h1>Your AI Dev Team. Ready to Build.</h1>
         <p>
-          Describe your {appCategory.toLowerCase()} idea, review its data model, then send the approved plan to the
-          Web/PWA coding workspace.
+          Describe your {appCategory.toLowerCase()} idea, review its data model, then send the approved plan to the{' '}
+          {projectType === 'web' || projectType === 'pwa'
+            ? 'Web/PWA coding workspace.'
+            : `${projectType} target-specific generator.`}
         </p>
         <div className="builder-selection-tags" aria-label="Your selections">
           <span>{appCategory}</span>
-          <span>{projectType === 'PWA' ? 'PWA' : 'Web app'}</span>
+          <span>
+            {projectType === 'pwa'
+              ? 'PWA'
+              : projectType === 'mobile'
+                ? 'Mobile app'
+                : projectType === 'desktop'
+                  ? 'Desktop app'
+                  : 'Web app'}
+          </span>
           {hearAbout && <span>Found us via {hearAbout}</span>}
         </div>
         <p className="factory-scope-note">
-          Web and PWA are the build targets available today. Mobile and desktop publishing are planned for a later
-          release.
+          The selected target controls the generation contract. Native compilation and installer publishing still
+          require the corresponding platform toolchains.
         </p>
       </section>
 
@@ -974,8 +1039,8 @@ export function FactoryLaunchpad() {
 
       <section className="foundation-registry" aria-label="Application target foundations">
         <div className="foundation-registry-heading">
-          <span className="step-label">ONE FOUNDATION PER TARGET</span>
-          <span>Generate the business app inside its target foundation — never merge application repos.</span>
+          <span>ONE FOUNDATION PER TARGET</span>
+          <span>Web/PWA is browser-buildable. Mobile and Desktop produce isolated target-specific plans.</span>
         </div>
         <div className="foundation-targets">
           {FOUNDATION_REGISTRY.map((foundation) => (
@@ -988,10 +1053,22 @@ export function FactoryLaunchpad() {
               </span>
               <span className="foundation-target-copy">
                 <strong>{foundation.name}</strong>
-                <small>{foundation.id === 'web-pwa' ? 'MVP coding workspace' : 'Foundation validation pending'}</small>
+                <small>
+                  {foundation.id === 'web-pwa'
+                    ? 'Browser coding workspace'
+                    : foundation.id === 'mobile'
+                      ? 'Expo target plan · native build unverified'
+                      : foundation.id === 'desktop'
+                        ? 'Electron target plan · installer unverified'
+                        : 'Candidate foundation · not selected'}
+                </small>
               </span>
               <span className={`foundation-target-state ${foundation.id === 'web-pwa' ? 'active' : ''}`}>
-                {foundation.id === 'web-pwa' ? 'MVP' : 'PLANNED'}
+                {foundation.id === 'web-pwa'
+                  ? 'AVAILABLE'
+                  : foundation.id === 'mobile' || foundation.id === 'desktop'
+                    ? 'PLAN'
+                    : 'PLANNED'}
               </span>
             </div>
           ))}
@@ -1002,7 +1079,7 @@ export function FactoryLaunchpad() {
         <section className="factory-card factory-input-card">
           <div className="card-title-row">
             <div>
-              <span className="step-label">01 / IDEA IN</span>
+              <span className="step-label">01 / IDEA IN · {projectType.toUpperCase()} TARGET</span>
               <h2>What do you want to build?</h2>
             </div>
             <CircleHelp size={18} className="muted-icon" />
@@ -1027,7 +1104,7 @@ export function FactoryLaunchpad() {
           <div className="field-row">
             <div className="field-group">
               <label className="field-label" htmlFor="app-type">
-                What kind of app?
+                Generation target
               </label>
               <div className="select-wrap">
                 <select
@@ -1035,8 +1112,10 @@ export function FactoryLaunchpad() {
                   value={projectType}
                   onChange={(event) => setProjectType(event.target.value as ProjectType)}
                 >
-                  <option>Web</option>
-                  <option>PWA</option>
+                  <option value="web">Web app</option>
+                  <option value="pwa">PWA</option>
+                  <option value="mobile">Mobile · Expo / React Native</option>
+                  <option value="desktop">Desktop · Electron</option>
                 </select>
                 <ChevronDown size={15} />
               </div>

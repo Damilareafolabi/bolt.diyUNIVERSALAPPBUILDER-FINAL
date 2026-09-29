@@ -73,7 +73,13 @@ export function Chat() {
         );
         const totalBytes = files.reduce((total, file) => total + new TextEncoder().encode(file.content).byteLength, 0);
 
-        if (!request.name || !request.buildPrompt || files.length === 0 || files.length > 140 || totalBytes > 512 * 1024) {
+        if (
+          !request.name ||
+          !request.buildPrompt ||
+          files.length === 0 ||
+          files.length > 140 ||
+          totalBytes > 512 * 1024
+        ) {
           throw new Error('The staged project import is invalid or exceeds the local import limits.');
         }
 
@@ -455,7 +461,7 @@ export const ChatImpl = memo(
       }
 
       let finalMessageContent = messageContent;
-      const isFactoryBuild = messageContent.startsWith('[Universal App Builder: foundation=web-pwa; approved-data-model=true]');
+      const isFactoryBuild = messageContent.startsWith('[Simeony App Builder: target=');
 
       if (selectedElement) {
         console.log('Selected Element:', selectedElement);

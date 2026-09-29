@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildWebPwaFoundationRequirements, generateWorkflowTestCases } from './schema-planner';
+import {
+  buildFoundationRequirements,
+  buildWebPwaFoundationRequirements,
+  generateWorkflowTestCases,
+} from './schema-planner';
+import { getFoundationForTarget } from './registry';
 
 describe('generateWorkflowTestCases', () => {
   it('derives validation, relationship, and role scenarios from the reviewed schema', () => {
@@ -51,5 +56,29 @@ describe('buildWebPwaFoundationRequirements', () => {
 
   it('requires installability work only for the PWA target', () => {
     expect(buildWebPwaFoundationRequirements(true).join('\n')).toContain('valid web app manifest');
+  });
+});
+
+describe('target foundation selection', () => {
+  it('selects one distinct foundation per target', () => {
+    expect(getFoundationForTarget('web').id).toBe('web-pwa');
+    expect(getFoundationForTarget('pwa').id).toBe('web-pwa');
+    expect(getFoundationForTarget('mobile').id).toBe('mobile');
+    expect(getFoundationForTarget('desktop').id).toBe('desktop');
+  });
+
+  it('keeps mobile and desktop generation contracts isolated', () => {
+    const mobileRequirements = buildFoundationRequirements('mobile').join('\n');
+    const desktopRequirements = buildFoundationRequirements('desktop').join('\n');
+
+    expect(mobileRequirements).toContain('React Native application using Expo');
+    expect(mobileRequirements).toContain('native stack navigation');
+    expect(mobileRequirements).toContain('Expo SQLite');
+    expect(mobileRequirements).not.toContain('Electron');
+
+    expect(desktopRequirements).toContain('desktop application shell with Electron');
+    expect(desktopRequirements).toContain('context isolation enabled');
+    expect(desktopRequirements).toContain('Tauri is not configured');
+    expect(desktopRequirements).not.toContain('Expo SQLite');
   });
 });
