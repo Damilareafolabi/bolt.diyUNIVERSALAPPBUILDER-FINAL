@@ -42,7 +42,7 @@ import JSZip from 'jszip';
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { toast } from 'react-toastify';
 import { FOUNDATION_REGISTRY, getFoundationForWebApp } from '~/lib/foundations/registry';
-import { generateWorkflowTestCases } from '~/lib/foundations/schema-planner';
+import { buildWebPwaFoundationRequirements, generateWorkflowTestCases } from '~/lib/foundations/schema-planner';
 import './FactoryLaunchpad.scss';
 
 type ProjectType = 'Web' | 'PWA';
@@ -381,6 +381,7 @@ function makeBuildPrompt(options: {
     analysis,
   } = options;
   const model = entities.map((entity) => `- ${entity.name}: ${entity.fields}`).join('\n');
+  const foundationRequirements = buildWebPwaFoundationRequirements(projectType === 'PWA');
 
   return `[Universal App Builder: foundation=web-pwa; approved-data-model=true]
 
@@ -393,6 +394,9 @@ APP CATEGORY: ${category}
 APP TARGET: ${projectType} (Web/PWA target foundation)
 SELECTED FOUNDATION: ${foundationName}
 FOUNDATION RULE: Select one web technical stack for this app and stay within it for the whole build. Do not mix frameworks or copy another application's repository. Do not switch foundations during generation.
+
+WEB / PWA FOUNDATION REQUIREMENTS:
+${foundationRequirements.map((requirement) => `- ${requirement}`).join('\n')}
 
 USER-APPROVED DATA MODEL:
 ${model}

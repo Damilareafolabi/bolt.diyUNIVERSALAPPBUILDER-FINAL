@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateWorkflowTestCases } from './schema-planner';
+import { buildWebPwaFoundationRequirements, generateWorkflowTestCases } from './schema-planner';
 
 describe('generateWorkflowTestCases', () => {
   it('derives validation, relationship, and role scenarios from the reviewed schema', () => {
@@ -13,7 +13,7 @@ describe('generateWorkflowTestCases', () => {
     });
 
     expect(testCases).toContain('Create a valid Customer and verify it can be read back with its required fields.');
-    expect(testCases).toContain('Reject a Order that is missing required fields or has invalid values.');
+    expect(testCases).toContain('Reject an invalid Order that is missing required fields or has invalid values.');
     expect(testCases).toContain('Verify the relationship and cardinality: Customer 1 → many Orders.');
     expect(testCases).toContain('Verify access is restricted according to this role: Admin: manage all records.');
     expect(testCases).toHaveLength(7);
@@ -34,5 +34,22 @@ describe('generateWorkflowTestCases', () => {
         roles: [],
       }),
     ).toHaveLength(24);
+  });
+});
+
+describe('buildWebPwaFoundationRequirements', () => {
+  it('includes reusable auth, navigation, data, security, and test requirements', () => {
+    const requirements = buildWebPwaFoundationRequirements(false).join('\n');
+
+    expect(requirements).toContain('responsive sidebar');
+    expect(requirements).toContain('email/password sign-up');
+    expect(requirements).toContain('validated create/edit forms');
+    expect(requirements).toContain('separate from Simeony model-provider credentials');
+    expect(requirements).toContain('role restrictions');
+    expect(requirements).not.toContain('web app manifest');
+  });
+
+  it('requires installability work only for the PWA target', () => {
+    expect(buildWebPwaFoundationRequirements(true).join('\n')).toContain('valid web app manifest');
   });
 });
