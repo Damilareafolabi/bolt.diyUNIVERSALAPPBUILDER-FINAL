@@ -28,6 +28,7 @@ import type { ElementInfo } from '~/components/workbench/Inspector';
 import type { TextUIPart, FileUIPart, Attachment } from '@ai-sdk/ui-utils';
 import { useMCPStore } from '~/lib/stores/mcp';
 import type { LlmErrorAlertType } from '~/types/actions';
+import { createChatFromFolder } from '~/utils/folderImport';
 
 const logger = createScopedLogger('Chat');
 
@@ -36,6 +37,61 @@ export function Chat() {
 
   const { ready, initialMessages, storeMessageHistory, importChat, exportChat } = useChatHistory();
   const title = useStore(description);
+  const factoryImportStarted = useRef(false);
+
+  useEffect(() => {
+    if (!ready || factoryImportStarted.current || typeof window === 'undefined') {
+      return;
+    }
+
+    const storageKey = 'universal-builder:pending-import';
+    const storedRequest = window.sessionStorage.getItem(storageKey);
+
+    if (!storedRequest) {
+      return;
+    }
+
+    factoryImportStarted.current = true;
+    window.sessionStorage.removeItem(storageKey);
+
+    void (async () => {
+      try {
+        const request = JSON.parse(storedRequest) as {
+          name?: string;
+          buildPrompt?: string;
+          files?: Array<{ path?: string; content?: string }>;
+        };
+        const files = (request.files || []).filter(
+          (file): file is { path: string; content: string } =>
+            typeof file.path === 'string' &&
+            typeof file.content === 'string' &&
+            file.path.length <= 400 &&
+            !file.path.startsWith('/') &&
+            !file.path.split(/[\\/]/).some((segment) => segment === '..' || segment === '.') &&
+            (!/(^|[\\/])\.env(?:$|\.)/i.test(file.path) ||
+              /(^|[\\/])\.env\.(?:example|sample|template)$/i.test(file.path)),
+        );
+        const totalBytes = files.reduce((total, file) => total + new TextEncoder().encode(file.content).byteLength, 0);
+
+        if (!request.name || !request.buildPrompt || files.length === 0 || files.length > 140 || totalBytes > 512 * 1024) {
+          throw new Error('The staged project import is invalid or exceeds the local import limits.');
+        }
+
+        const browserFiles = files.map(({ path, content }) => {
+          const fileName = path.split(/[\\/]/).at(-1) || 'source.txt';
+          const file = new File([content], fileName, { type: 'text/plain' });
+          Object.defineProperty(file, 'webkitRelativePath', { value: `${request.name}/${path}` });
+          return file;
+        });
+        const messages = await createChatFromFolder(browserFiles, [], request.name);
+        await importChat(request.name, messages, undefined, request.buildPrompt);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Project import failed.';
+        toast.error(message);
+      }
+    })();
+  }, [ready, importChat]);
+
   useEffect(() => {
     workbenchStore.setReloadedMessages(initialMessages.map((m) => m.id));
   }, [initialMessages]);
@@ -399,6 +455,7 @@ export const ChatImpl = memo(
       }
 
       let finalMessageContent = messageContent;
+      const isFactoryBuild = messageContent.startsWith('[Universal App Builder: foundation=web-pwa; approved-data-model=true]');
 
       if (selectedElement) {
         console.log('Selected Element:', selectedElement);
@@ -412,7 +469,7 @@ export const ChatImpl = memo(
       if (!chatStarted) {
         setFakeLoading(true);
 
-        if (autoSelectTemplate) {
+        if (autoSelectTemplate && !isFactoryBuild) {
           const { template, title } = await selectStarterTemplate({
             message: finalMessageContent,
             model,
